@@ -1,0 +1,110 @@
+{
+  "name": "SmartBinFST_Tahap2",
+  "model_type": "Mealy Finite State Transducer: M = (Q, Sigma, Delta, delta, lambda, q0)",
+  "initial_state": "q0",
+  "states": {
+    "q0": {
+      "label": "Siaga",
+      "description": "Menunggu pengguna, perintah dashboard, atau kondisi penuh"
+    },
+    "q1": {
+      "label": "Tutup Terbuka",
+      "description": "Tutup utama terbuka menunggu sampah dimasukkan hingga timer habis"
+    },
+    "q2": {
+      "label": "Memilah",
+      "description": "Menunggu hasil klasifikasi visual YOLO dari laptop via USB Serial"
+    },
+    "qF": {
+      "label": "Penuh",
+      "description": "Keranjang penuh, tutup terkunci hingga dikosongkan"
+    }
+  },
+  "inputs": {
+    "f": "Salah satu keranjang penuh (jarak ultrasonik < 5 cm)",
+    "n": "Kapasitas kedua keranjang aman (jarak >= 5 cm)",
+    "p": "Pengguna terdeteksi oleh ultrasonik 1 (jarak < 30 cm)",
+    "p'": "Tidak ada pengguna (ultrasonik 1 >= 30 cm)",
+    "w": "Perintah Force Open dari Web Dashboard",
+    "o": "Objek terklasifikasi sebagai sampah organik",
+    "a": "Objek terklasifikasi sebagai sampah anorganik",
+    "delay": "Timer tutup terbuka habis (default 5 detik)",
+    "u": "[EKSTENSI] Klasifikasi gagal / tidak yakin / tidak ada objek / timeout 6 detik"
+  },
+  "outputs": {
+    "c_Sync": "HTTP POST sinkronisasi status dan kejadian ke Supabase",
+    "s_Buka": "Gerakkan servo 1 (tutup utama) ke 90 derajat (buka)",
+    "s_Tutup": "Gerakkan servo 1 (tutup utama) ke 0 derajat (tutup)",
+    "m_Kiri": "Gerakkan servo 2 (papan pengarah) miring ke wadah organik, jeda 1.5 detik, lalu kembali netral",
+    "m_Kanan": "Gerakkan servo 2 (papan pengarah) miring ke wadah anorganik, jeda 1.5 detik, lalu kembali netral",
+    "L_Merah": "Nyalakan LED merah indikator penuh",
+    "Off_LED": "Matikan LED merah indikator penuh"
+  },
+  "priority_rules": {
+    "q0": ["f", "w", "p"],
+    "q1": ["delay"],
+    "q2": ["o", "a", "u"],
+    "qF": ["n"]
+  },
+  "transitions": [
+    {
+      "from_state": "q0",
+      "input": "f",
+      "outputs": ["L_Merah", "c_Sync"],
+      "to_state": "qF",
+      "note": "Prioritas utama di q0: abaikan p dan w jika f aktif"
+    },
+    {
+      "from_state": "q0",
+      "input": "p",
+      "outputs": ["s_Buka"],
+      "to_state": "q1",
+      "note": "Pengguna terdeteksi di depan tempat sampah"
+    },
+    {
+      "from_state": "q0",
+      "input": "w",
+      "outputs": ["s_Buka"],
+      "to_state": "q1",
+      "note": "Perintah Force Open dari Web Dashboard"
+    },
+    {
+      "from_state": "q1",
+      "input": "delay",
+      "outputs": ["s_Tutup"],
+      "to_state": "q2",
+      "note": "Timer buka tutup selesai, tutup kembali dan mulai klasifikasi YOLO"
+    },
+    {
+      "from_state": "q2",
+      "input": "o",
+      "outputs": ["m_Kiri", "c_Sync"],
+      "to_state": "q0",
+      "waste_type": "organic",
+      "note": "Sampah organik diarahkan ke kiri lalu servo 2 kembali netral"
+    },
+    {
+      "from_state": "q2",
+      "input": "a",
+      "outputs": ["m_Kanan", "c_Sync"],
+      "to_state": "q0",
+      "waste_type": "inorganic",
+      "note": "Sampah anorganik diarahkan ke kanan lalu servo 2 kembali netral"
+    },
+    {
+      "from_state": "q2",
+      "input": "u",
+      "outputs": ["c_Sync", "m_Kanan"],
+      "to_state": "q0",
+      "waste_type": "unknown",
+      "note": "gagal klasifikasi: servo 2 tetap netral saat catat log, lalu buang residu ke anorganik (m_Kanan) dan kembali netral"
+    },
+    {
+      "from_state": "qF",
+      "input": "n",
+      "outputs": ["Off_LED", "c_Sync"],
+      "to_state": "q0",
+      "note": "Keranjang sudah dikosongkan dan kembali aman"
+    }
+  ]
+}

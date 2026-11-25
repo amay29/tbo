@@ -1,0 +1,11 @@
+# Konfigurasi dataset untuk mode deteksi objek (yolo11n)
+# Catatan: Untuk mode klasifikasi default (yolo11n-cls), Ultralytics membaca
+# langsung struktur folder datasets/waste_cls/train dan datasets/waste_cls/val.
+
+path: datasets/waste_det
+train: images/train
+val: images/val
+
+names:
+  0: organic
+  1: inorganic

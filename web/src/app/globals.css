@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+:root {
+  --bg-page: #faf8f4;
+  --bg-surface: #ffffff;
+  --bg-muted: #f3efe6;
+  --text-primary: #1e2620;
+  --text-secondary: #4a544c;
+  --border-subtle: #ded8cc;
+  --border-control: #746e62;
+  --accent-organic: #4a6b4d;
+  --accent-inorganic: #4c6473;
+  --accent-warning: #9a6324;
+  --accent-full: #a94438;
+  --focus-ring: #355238;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  text-align: start;
+}
+
+/* Utilitas aksesibilitas untuk skip link & live region */
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Indikator fokus keyboard yang jelas dan kontras tinggi */
+:where(a, button, input):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Styling elemen <progress> bawaan sesuai panduan modern web */
+progress.capacity-progress {
+  appearance: none;
+  border: 0 solid;
+  overflow: clip;
+  display: block;
+  width: 100%;
+  height: 0.75rem;
+  border-radius: 1e5px;
+  background: var(--progress-bar-track, #e6e0d4);
+}
+
+progress.capacity-progress::-webkit-progress-bar {
+  background: transparent;
+}
+
+progress.capacity-progress::-webkit-progress-value {
+  background: var(--progress-bar-fill, var(--accent-organic));
+  border-radius: 1e5px;
+  transition: inline-size 180ms ease-out, background-color 180ms ease-out;
+}
+
+progress.capacity-progress::-moz-progress-bar {
+  background: var(--progress-bar-fill, var(--accent-organic));
+  border-radius: 1e5px;
+  transition: inline-size 180ms ease-out, background-color 180ms ease-out;
+}
+
+/* Validasi input form hanya setelah interaksi pengguna */
+.field-input:is(:user-invalid, .user-invalid-fallback) {
+  border-color: var(--accent-full);
+  background-color: #fdf5f3;
+}
